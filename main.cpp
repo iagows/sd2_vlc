@@ -13,6 +13,8 @@
 #include <assert.h>
 #include <string>
 
+#include "context.h"
+
 extern "C"
 {
     #include "SDL.h"
@@ -25,23 +27,13 @@ extern "C"
 #undef main
 #endif
 
-#define WIDTH 640
-#define HEIGHT 480
-
 #define VIDEOWIDTH 320
 #define VIDEOHEIGHT 240
-
-struct context {
-    SDL_Renderer *renderer;
-    SDL_Texture *texture;
-    SDL_mutex *mutex;
-    int n;
-};
 
 // VLC prepares to render a video frame.
 static void *lock(void *data, void **p_pixels)
 {
-    struct context *c = (context *)data;
+    Context *c = (Context *)data;
 
     int pitch;
     SDL_LockMutex(c->mutex);
@@ -53,7 +45,7 @@ static void *lock(void *data, void **p_pixels)
 // VLC just rendered a video frame.
 static void unlock(void *data, void *id, void *const *p_pixels)
 {
-    struct context *c = (context *)data;
+    Context *c = (Context *)data;
     // We can also render stuff.
     /*
      * Things to render over video goes here
@@ -85,7 +77,7 @@ static void unlock(void *data, void *id, void *const *p_pixels)
 // VLC wants to display a video frame.
 static void display(void *data, void *id)
 {
-    struct context *c = (context *)data;
+    Context *c = (Context *)data;
 
     SDL_Rect rect;
     rect.w = VIDEOWIDTH;
@@ -104,7 +96,74 @@ static void quit(int c) {
     exit(c);
 }
 
-int main(/*int argc, char *argv[]*/)
+SDL_Renderer * createRenderer()
+{
+    // Create SDL graphics objects.
+    SDL_Window * window = SDL_CreateWindow(
+            "Mimimi",
+            SDL_WINDOWPOS_CENTERED,
+            SDL_WINDOWPOS_CENTERED,
+            VIDEOWIDTH, VIDEOHEIGHT,
+            SDL_WINDOW_SHOWN/*|SDL_WINDOW_RESIZABLE*/);
+    if (!window)
+    {
+        fprintf(stderr, "Couldn't create window: %s\n", SDL_GetError());
+        quit(3);
+    }
+
+    SDL_Renderer* ren = SDL_CreateRenderer(window, -1, 0);
+    if (!ren)
+    {
+        fprintf(stderr, "Couldn't create renderer: %s\n", SDL_GetError());
+        quit(4);
+    }
+
+    return ren;
+}
+
+void stayOnLoop(Context* c)
+{
+    SDL_Event event;
+    bool done = false;
+    int action = 0;
+    bool pause = false;
+
+    // Main loop.
+    while(!done)
+    {
+        action = 0;
+
+        // Keys: enter (fullscreen), space (pause), escape (quit).
+        while( SDL_PollEvent( &event )) {
+
+            switch(event.type) {
+                case SDL_QUIT:
+                    done = true;
+                    break;
+                case SDL_KEYDOWN:
+                    action = event.key.keysym.sym;
+                    break;
+            }
+        }
+
+        switch(action) {
+            case SDLK_ESCAPE:
+            case SDLK_q:
+                done = true;
+                break;
+            case SDLK_SPACE:
+                printf("Pause toggle.\n");
+                pause = !pause;
+                break;
+        }
+
+        if(!pause) { c->n++; }
+
+        SDL_Delay(1000/10);
+    }
+}
+
+int main()
 {
     std::string path = "a.mp4";
     libvlc_instance_t *libvlc;
@@ -116,50 +175,27 @@ int main(/*int argc, char *argv[]*/)
         //"--no-xlib"//, // Don't use Xlib.
 
         // Apply a video filter.
-        //"--video-filter", "sepia",
-        //"--sepia-intensity=200"
+        //"--video-filter", "sepia", "--sepia-intensity=200"
     };
     int vlc_argc = sizeof(vlc_argv) / sizeof(*vlc_argv);
 
-    SDL_Event event;
-    int done = 0, action = 0, pause = 0;//, n = 0;
-
-    struct context context;
-
-   /* if(argc < 2) {
-        printf("Usage: %s <filename>\n", argv[0]);
-        return EXIT_FAILURE;
-    }*/
+    Context context;
 
     // Initialise libSDL.
-    if(SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if(SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
         printf("Could not initialize SDL: %s.\n", SDL_GetError());
         return EXIT_FAILURE;
     }
 
-    // Create SDL graphics objects.
-    SDL_Window * window = SDL_CreateWindow(
-            "VLC player",
-            SDL_WINDOWPOS_CENTERED,
-            SDL_WINDOWPOS_CENTERED,
-            VIDEOWIDTH, VIDEOHEIGHT,
-            SDL_WINDOW_SHOWN/*|SDL_WINDOW_RESIZABLE*/);
-    if (!window) {
-        fprintf(stderr, "Couldn't create window: %s\n", SDL_GetError());
-        quit(3);
-    }
-
-    context.renderer = SDL_CreateRenderer(window, -1, 0);
-    if (!context.renderer) {
-        fprintf(stderr, "Couldn't create renderer: %s\n", SDL_GetError());
-        quit(4);
-    }
+    context.renderer = createRenderer();
 
     context.texture = SDL_CreateTexture(
             context.renderer,
             SDL_PIXELFORMAT_BGR565, SDL_TEXTUREACCESS_STREAMING,
             VIDEOWIDTH, VIDEOHEIGHT);
-    if (!context.texture) {
+    if (!context.texture)
+    {
         fprintf(stderr, "Couldn't create texture: %s\n", SDL_GetError());
         quit(5);
     }
@@ -188,39 +224,7 @@ int main(/*int argc, char *argv[]*/)
     libvlc_video_set_format(mp, "RV16", VIDEOWIDTH, VIDEOHEIGHT, VIDEOWIDTH*2);
     libvlc_media_player_play(mp);
 
-    // Main loop.
-    while(!done) {
-
-        action = 0;
-
-        // Keys: enter (fullscreen), space (pause), escape (quit).
-        while( SDL_PollEvent( &event )) {
-
-            switch(event.type) {
-                case SDL_QUIT:
-                    done = 1;
-                    break;
-                case SDL_KEYDOWN:
-                    action = event.key.keysym.sym;
-                    break;
-            }
-        }
-
-        switch(action) {
-            case SDLK_ESCAPE:
-            case SDLK_q:
-                done = 1;
-                break;
-            case ' ':
-                printf("Pause toggle.\n");
-                pause = !pause;
-                break;
-        }
-
-        if(!pause) { context.n++; }
-
-        SDL_Delay(1000/10);
-    }
+    stayOnLoop(&context);
 
     // Stop stream and clean up libVLC.
     libvlc_media_player_stop(mp);
@@ -228,8 +232,7 @@ int main(/*int argc, char *argv[]*/)
     libvlc_release(libvlc);
 
     // Close window and clean up libSDL.
-    SDL_DestroyMutex(context.mutex);
-    SDL_DestroyRenderer(context.renderer);
+    //delete context;//it isn't a pointer, so it'll clean itself
 
     quit(0);
 

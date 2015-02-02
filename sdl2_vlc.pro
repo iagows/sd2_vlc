@@ -4,7 +4,11 @@ CONFIG -= app_bundle
 CONFIG -= qt
 CONFIG += c++11
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    context.cpp
+
+HEADERS += \
+    context.h
 
 include(deployment.pri)
 qtcAddDeployment()
