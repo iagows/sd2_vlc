@@ -54,10 +54,12 @@ static void *lock(void *data, void **p_pixels)
 static void unlock(void *data, void *id, void *const *p_pixels)
 {
     struct context *c = (context *)data;
-
+    // We can also render stuff.
+    /*
+     * Things to render over video goes here
+     *
     uint16_t *pixels = (uint16_t *)*p_pixels;
 
-    // We can also render stuff.
     int x, y;
     for(y = 10; y < 40; y++)
     {
@@ -74,6 +76,7 @@ static void unlock(void *data, void *id, void *const *p_pixels)
             }
         }
     }
+    */
 
     SDL_UnlockTexture(c->texture);
     SDL_UnlockMutex(c->mutex);
@@ -109,7 +112,7 @@ int main(/*int argc, char *argv[]*/)
     libvlc_media_player_t *mp;
     char const *vlc_argv[] = {
 
-        //"--no-audio", // Don't play audio.
+        //"--no-audio"//, // Don't play audio.
         //"--no-xlib"//, // Don't use Xlib.
 
         // Apply a video filter.
@@ -170,7 +173,7 @@ int main(/*int argc, char *argv[]*/)
 #endif
 
     // Initialise libVLC.
-    libvlc = libvlc_new(0, NULL);
+    libvlc = libvlc_new(vlc_argc, vlc_argv);
     if(libvlc == nullptr)
     {
         printf("LibVLC initialization failure.\n");
