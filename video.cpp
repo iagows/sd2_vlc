@@ -1,8 +1,9 @@
 #include "video.h"
 
-Video::Video()
+Video::Video(int width, int height)
 {
-
+    videoWidth = width;
+    videoHeight = height;
 }
 
 Video::~Video()
@@ -18,7 +19,7 @@ int Video::run(std::string path, SDL_Renderer *renderer)
     context.texture = SDL_CreateTexture(
             context.renderer,
             SDL_PIXELFORMAT_BGR565, SDL_TEXTUREACCESS_STREAMING,
-            VIDEOWIDTH, VIDEOHEIGHT);
+            videoWidth, videoHeight);
     if (!context.texture)
     {
         fprintf(stderr, "Couldn't create texture: %s\n", SDL_GetError());
@@ -122,7 +123,10 @@ void Video::createPlayerAndPlay(libvlc_instance_t *libvlc, std::string path, Con
     libvlc_media_release(m);
 
     libvlc_video_set_callbacks(mp, lock, unlock, display, context);
-    libvlc_video_set_format(mp, "RV16", VIDEOWIDTH, VIDEOHEIGHT, VIDEOWIDTH*2);
+
+
+    printf("W: %s, H: %s\n", libvlc_video_get_width(mp), libvlc_video_get_height(mp));
+    libvlc_video_set_format(mp, "RV16", videoWidth, videoHeight, videoWidth*2);
     libvlc_media_player_play(mp);
 
     playLoop(context, mp);

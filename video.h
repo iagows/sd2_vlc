@@ -20,8 +20,8 @@ extern "C"
     #include "vlc/vlc.h"
 }
 
-#define VIDEOWIDTH 320
-#define VIDEOHEIGHT 240
+static int videoWidth = 0;
+static int videoHeight = 0;
 
 // VLC prepares to render a video frame.
 static void *lock(void *data, void **p_pixels)
@@ -73,8 +73,8 @@ static void display(void *data, void *id)
     Context *c = (Context *)data;
 
     SDL_Rect rect;
-    rect.w = VIDEOWIDTH;
-    rect.h = VIDEOHEIGHT;
+    rect.w = videoWidth;
+    rect.h = videoHeight;
     rect.x = 0;//(int)((1. + .5 * sin(0.03 * c->n)) * (WIDTH - VIDEOWIDTH) / 2);
     rect.y = 0;//(int)((1. + .5 * cos(0.03 * c->n)) * (HEIGHT - VIDEOHEIGHT) / 2);
 
@@ -87,7 +87,7 @@ static void display(void *data, void *id)
 class SDL2VLC_SHARED_EXPORT Video
 {
 public:
-    Video();
+    Video(int width = 320, int height = 240);
     ~Video();
     int run(std::string path, SDL_Renderer* renderer);
 private:
