@@ -11,7 +11,7 @@ Video::~Video()
 
 }
 
-int Video::run(std::string path, SDL_Renderer *renderer)
+int Video::play(std::string path, SDL_Renderer *renderer)
 {
     Context context;
     context.renderer = renderer;

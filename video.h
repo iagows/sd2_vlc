@@ -89,7 +89,7 @@ class SDL2VLC_SHARED_EXPORT Video
 public:
     Video(int width = 320, int height = 240);
     ~Video();
-    int run(std::string path, SDL_Renderer* renderer);
+    int play(std::string path, SDL_Renderer* renderer);
 private:
     void playLoop(Context* c, libvlc_media_player_t *mp);
     void createPlayerAndPlay(libvlc_instance_t* libvlc, std::string path, Context* context);
