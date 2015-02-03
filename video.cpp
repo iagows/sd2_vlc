@@ -14,7 +14,6 @@ int Video::run(std::string path, SDL_Renderer *renderer)
 {
     Context context;
     context.renderer = renderer;
-    context.setRenderKillable(false);
 
     context.texture = SDL_CreateTexture(
             context.renderer,

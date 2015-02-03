@@ -16,10 +16,6 @@ public:
     SDL_Texture *texture;
     SDL_mutex *mutex;
     int n;
-
-    void setRenderKillable(bool v);
-private:
-    bool killRenderer;
 };
 
 #endif // CONTEXT_H
