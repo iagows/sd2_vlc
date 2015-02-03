@@ -1,3 +1,7 @@
+//code from:
+//https://wiki.videolan.org/LibVLC_Users/
+//https://wiki.videolan.org/LibVLC_SampleCode_SDL/
+
 #ifndef SDL2VLC_GLOBAL
 #define SDL2VLC_GLOBAL
 

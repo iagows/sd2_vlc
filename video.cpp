@@ -10,19 +10,11 @@ Video::~Video()
 
 }
 
-int Video::run()
+int Video::run(std::string path, SDL_Renderer *renderer)
 {
-    std::string path = "a.mp4";
-
-    // Initialise libSDL.
-    if(SDL_Init(SDL_INIT_VIDEO) < 0)
-    {
-        printf("Could not initialize SDL: %s.\n", SDL_GetError());
-        return EXIT_FAILURE;
-    }
-
     Context context;
-    context.renderer = createRenderer();
+    context.renderer = renderer;
+    context.setRenderKillable(false);
 
     context.texture = SDL_CreateTexture(
             context.renderer,
@@ -31,7 +23,7 @@ int Video::run()
     if (!context.texture)
     {
         fprintf(stderr, "Couldn't create texture: %s\n", SDL_GetError());
-        quit(5);
+        return 5;
     }
 
     context.mutex = SDL_CreateMutex();
@@ -60,34 +52,7 @@ int Video::run()
 
     createPlayerAndPlay(libvlc, path, &context);
 
-    quit(EXIT_SUCCESS);
-
     return EXIT_SUCCESS;
-}
-
-SDL_Renderer *Video::createRenderer()
-{
-    // Create SDL graphics objects.
-    SDL_Window * window = SDL_CreateWindow(
-            "Mimimi",
-            SDL_WINDOWPOS_CENTERED,
-            SDL_WINDOWPOS_CENTERED,
-            VIDEOWIDTH, VIDEOHEIGHT,
-            SDL_WINDOW_SHOWN/*|SDL_WINDOW_RESIZABLE*/);
-    if (!window)
-    {
-        fprintf(stderr, "Couldn't create window: %s\n", SDL_GetError());
-        quit(3);
-    }
-
-    SDL_Renderer* ren = SDL_CreateRenderer(window, -1, 0);
-    if (!ren)
-    {
-        fprintf(stderr, "Couldn't create renderer: %s\n", SDL_GetError());
-        quit(4);
-    }
-
-    return ren;
 }
 
 void Video::playLoop(Context *c, libvlc_media_player_t *mp)

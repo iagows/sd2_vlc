@@ -84,19 +84,13 @@ static void display(void *data, void *id)
     SDL_RenderPresent(c->renderer);
 }
 
-static void quit(int c) {
-    SDL_Quit();
-    exit(c);
-}
-
 class SDL2VLC_SHARED_EXPORT Video
 {
 public:
     Video();
     ~Video();
-    int run();
+    int run(std::string path, SDL_Renderer* renderer);
 private:
-    SDL_Renderer* createRenderer();
     void playLoop(Context* c, libvlc_media_player_t *mp);
     void createPlayerAndPlay(libvlc_instance_t* libvlc, std::string path, Context* context);
 };
