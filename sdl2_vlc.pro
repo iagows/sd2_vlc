@@ -4,11 +4,21 @@ CONFIG -= app_bundle
 CONFIG -= qt
 CONFIG += c++11
 
-SOURCES += main.cpp \
-    context.cpp
+QT       -= core gui
+
+TARGET = sdl2vlc
+TEMPLATE = lib
+
+DEFINES += SDL2VLC_LIBRARY
+
+SOURCES += \
+    context.cpp \
+    video.cpp
 
 HEADERS += \
-    context.h
+    context.h \
+    sdl2vlc_global.h \
+    video.h
 
 include(deployment.pri)
 qtcAddDeployment()
@@ -26,6 +36,11 @@ CONFIG(release, debug|release) {
     CONFIG -= debug release
     CONFIG += release
     DEFINES += RELEASE
+}
+
+unix {
+    target.path = /usr/lib
+    INSTALLS += target
 }
 
 msvc{
